@@ -1,5 +1,6 @@
 package com.workshop.persistent.dao;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Repository;
@@ -12,13 +13,13 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import lombok.RequiredArgsConstructor;
+import lombok.Data;
 
 @Repository
-@RequiredArgsConstructor
+@Data
 public class EmployeeDAO 
 {
-	private final EntityManager entityManager;
+	private EntityManager entityManager;
 	
 	public List<Employee> getAll(String firstName, String lastName, String email)
 	{
@@ -47,5 +48,38 @@ public class EmployeeDAO
 		
 		TypedQuery<Employee> query=entityManager.createQuery(criteriaQuery);
 		return query.getResultList();
+	}
+	
+	private List<Employee> getAll(SearchRequest searchRequest)
+	{
+		CriteriaBuilder criteriaBuilder=entityManager.getCriteriaBuilder();
+		CriteriaQuery<Employee> criteriaQuery=criteriaBuilder.createQuery(Employee.class);
+		List<Predicate> predicates=new ArrayList<>();
+		
+		// select from employee
+		Root<Employee> root=criteriaQuery.from(Employee.class);
+		
+		if(searchRequest.getFirstName()!=null)
+		{
+			Predicate firstNamePredicate=criteriaBuilder.like(root.get("firstName"), "%"+searchRequest.getFirstName()+"%");
+			predicates.add(firstNamePredicate);
+		}
+		
+		if(searchRequest.getLastName()!=null)
+		{
+			Predicate lastNamePredicate=criteriaBuilder.like(root.get("lastName"), "%"+searchRequest.getLastName()+"%");
+			predicates.add(lastNamePredicate);
+		}
+		
+		if(searchRequest.getEmail()!=null)
+		{
+			Predicate emailPredicate=criteriaBuilder.like(root.get("email"), "%"+searchRequest.getEmail()+"%");
+			predicates.add(emailPredicate);
+		}
+		
+		criteriaQuery.where(criteriaBuilder.or(predicates.toArray(new Predicate[0])));
+		
+		TypedQuery<Employee> query=entityManager.createQuery(criteriaQuery);
+		query.getResultList();
 	}
 }
