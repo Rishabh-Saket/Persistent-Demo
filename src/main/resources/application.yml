@@ -13,3 +13,10 @@ spring:
         format-sql: true
     database: mysql
     database-platform: org.hibernate.dialect.MySQL8Dialect
+  flyway:
+    baseline-on-migrate: true
+    enabled: true
+    user: teja
+    password: teja
+    baseline-description: "init"
+    baseline-version: 0
